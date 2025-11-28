@@ -1,14 +1,13 @@
 package com.example.spring.boot.demo.controllers;
 
 import com.example.spring.boot.demo.entities.UserEntity;
-import com.example.spring.boot.demo.models.User;
+import com.example.spring.boot.demo.exceptions.NotFoundException;
 import com.example.spring.boot.demo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
@@ -28,10 +27,23 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public Optional<UserEntity> getUserById(@PathVariable Long id) {
+    public UserEntity getUserById(@PathVariable Long id) {
+        return userRepository.findById(id).orElseThrow( () -> new NotFoundException("Users is not found with this id: "+id));
+    }
 
-        return userRepository.findById(id);
+    @PutMapping("/{id}")
+    public UserEntity updateUser(@PathVariable Long id, @RequestBody UserEntity user) {
+        UserEntity oldUser = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User is not found with this id: "+id));
+        oldUser.setName(user.getName());
+        oldUser.setEmail(user.getEmail());
+        return userRepository.save(oldUser);
+    }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        UserEntity userData = userRepository.findById(id).orElseThrow(() -> new NotFoundException("Users is not found with this id: "+id));
+        userRepository.delete(userData);
+        return ResponseEntity.ok().build();
     }
 
 }
