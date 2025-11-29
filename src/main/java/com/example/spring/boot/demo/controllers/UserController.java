@@ -5,6 +5,7 @@ import com.example.spring.boot.demo.exceptions.NotFoundException;
 import com.example.spring.boot.demo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,6 +16,8 @@ public class UserController {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @GetMapping
     public List<UserEntity> getUsers() {
@@ -23,6 +26,7 @@ public class UserController {
 
     @PostMapping
     public UserEntity createUser(@RequestBody UserEntity user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
 
@@ -36,6 +40,8 @@ public class UserController {
         UserEntity oldUser = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User is not found with this id: "+id));
         oldUser.setName(user.getName());
         oldUser.setEmail(user.getEmail());
+        oldUser.setUsername(user.getUsername());
+        oldUser.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(oldUser);
     }
 
